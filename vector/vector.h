@@ -9,13 +9,16 @@ namespace leo
 //       iterator
 //============================================
 
+#define iterator_base std::iterator<std::random_access_iterator_tag,T> 
 //normal iterator
 template <typename T>
-class __vec_iterator : 
-	public std::iterator<std::random_access_iterator_tag,T>
+class __vec_iterator :	public iterator_base
 {
 public:
-	__vec_iterator() : ptr(NULL) {}
+	typedef typename iterator_base::difference_type  difference_type;
+	typedef typename iterator_base::pointer          pointer;
+	typedef typename iterator_base::reference        reference;
+	__vec_iterator() : ptr() {}
 
 	explicit __vec_iterator(T* p) : ptr(p) {}
 
@@ -42,7 +45,7 @@ public:
 
 	__vec_iterator& operator-(difference_type n)
 	{
-		return __vec_iterator(lhs.ptr+n);
+		return __vec_iterator(ptr+n);
 	}
 
 	__vec_iterator& operator+=(difference_type n) { ptr+=n;return *this; }
@@ -52,49 +55,54 @@ public:
 	const pointer& base() const { return ptr; }
 private:
 	pointer ptr;
-};
+}; //__vec_iterator
 
-//reload operator
-//for __vec_iterator
+//overload operator
 template<typename T>
-inline __vec_iterator::difference_type
+inline typename __vec_iterator<T>::difference_type
 operator-(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() - rhs.base();
 }
 
 template<typename T>
-inline bool operator==(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool 
+operator==(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() == rhs.base();
 }
 
 template<typename T>
-inline bool operator!=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool 
+operator!=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() != rhs.base();
 }
 
 template<typename T>
-inline bool operator<(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool 
+operator<(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() < rhs.base();
 }
 
 template<typename T>
-inline bool operator>(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool 
+operator>(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() > rhs.base();
 }
 
 template<typename T>
-inline bool operator<=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool 
+operator<=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() <= rhs.base();
 }
 
 template<typename T>
-inline bool operator>=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
+inline bool
+operator>=(const __vec_iterator<T>& lhs,const __vec_iterator<T>& rhs)
 {
 	return lhs.base() >= rhs.base();
 }
