@@ -275,7 +275,9 @@ public:
 
 	vector(iterator begin,iterator end) : _imp(begin,end) {}
 
-	vector(const vector& vec) : _imp(vec._imp) {}
+	vector(const_iterator begin,const_iterator end) : _imp(begin,end) {}
+
+	vector(const vector& vec) : _imp(vec.begin(),vec.end()) {}
 
 	vector& operator=(const vector& rhs)
 	{
@@ -297,7 +299,7 @@ public:
 	const_iterator end() const { return const_iterator(_imp._end); }
 
 	//Capacity
-	size_type size() const { return _imp._begin - _imp._end; }
+	size_type size() const { return _imp._end - _imp._begin; }
 
 	void resize(size_type n) { resize(n,value_type()); }
 
@@ -315,19 +317,18 @@ public:
 			
 	size_type capacity() const { return _imp._end_of_storage - _imp._begin; }
 
-	bool empty() { return _imp.begin == _imp.end; }
+	bool empty() { return _imp._begin == _imp._end; }
 
 	void reserve(size_type n)
 	{
-		if (n > capacity)
+		if (n > capacity())
 		{
 			iterator temp(_imp.allocate(n));
 			uninitialized_copy(begin(),end(),temp);
-			_imp.destory(_imp._begin,_imp._end);
 			size_type old_size = size();
-			_imp.deallcate(_imp._begin,old_size);
+			_imp.selfdelete();
 			_imp._begin = temp.base();
-			_imp._end = _imp._begin + size;
+			_imp._end = _imp._begin + old_size;
 			_imp._end_of_storage = _imp._begin + n;
 		}
 	}
@@ -372,30 +373,35 @@ public:
 
 	const_reference back() const { return *(_imp._end - 1); }
 
-	//Modefiers
-	void assign(iterator begin,iterator end)
+	//Modifiers
+	void assign(const_iterator first,const_iterator last)
 	{
-		size_type n = end - begin;
+		size_type n = first - last;
 		if (n > capacity())
 		{
 			_imp.selfdelete();
-			_imp.initialize_Copy(begin,end);
+			_imp.initialize_Copy(first,last);
 		}
 		else
 		{
 			if (n < size())
 			{
-				std::copy(begin,end,begin());
+				std::copy(first,last,begin());
 				iterator new_end = begin() + n;
 				erase(new_end,end());
 			}
 			else
 			{
-				std::copy(begin,begin + size(),begin());
-				std::uninitialized_copy(begin + size(),end,end());
+				std::copy(first,first + size(),begin());
+				std::uninitialized_copy(first + size(),last,end());
 				_imp._end = _imp._begin + n;
 			}
 		}
+	}
+
+	void assign(iterator begin,iterator end)
+	{
+		assign(const_iterator(begin),const_iterator(end));
 	}
 
 	void assign(size_type n,const value_type& value)
@@ -438,7 +444,7 @@ public:
 	void pop_back()
 	{
 		--_imp._end;
-		_imp.destory(_imp._end);
+		_imp.destroy(_imp._end);
 	}
 
 	iterator insert(iterator position,const value_type& value)
@@ -447,7 +453,7 @@ public:
 		{
 			_imp.construct(_imp._end,*(_imp._end - 1));
 			++_imp._end;
-			std::copy(position,(end() - 2),(position + 1));
+			std::copy_backward(position,(end() - 2),(end() - 1));
 			*position = value;
 			return position;
 		}
@@ -466,7 +472,7 @@ public:
 			//deallocate old one
 			_imp.selfdelete();
 			_imp._begin = new_begin;
-			_imp._end = new_begin + old_capacity;
+			_imp._end = new_begin + old_capacity + 1;
 			_imp._end_of_storage = new_begin + new_capacity;
 			return current;
 		}
@@ -474,7 +480,7 @@ public:
 
 	iterator insert(iterator position,size_type n,const value_type& value)
 	{
-		if (n == 0) return;
+		if (n == 0) return position;
 		if ((size() + n) <= capacity())
 		{
 			size_type n_elem = end() - position;//count element from position to end;
@@ -518,7 +524,7 @@ public:
 	iterator insert(iterator position,iterator first,iterator last)
 	{
 		size_type n = last - first;
-		if (n == 0) return;
+		if (n == 0) return position;
 		if ((size() + n) <= capacity())
 		{
 			size_type n_elem = end() - position;//count element from position to end;
@@ -563,7 +569,7 @@ public:
 	{
 		std::copy(position + 1,end(),position);
 		--_imp._end;
-		_imp.destory(_imp._end);
+		_imp.destroy(_imp._end);
 		return position;
 	}
 
@@ -571,7 +577,7 @@ public:
 	{
 		size_type n = last - first;
 		std::copy(last,end(),first);
-		_imp.destory(end() - n,end());
+		_imp.destroy(_imp._end - n,_imp._end);
 		_imp._end -= n;
 		return first;
 	}
@@ -594,6 +600,7 @@ public:
 
 	//Allocator
 	allocator_type get_allocator() const { return allocator_type(); }
+
 private:
 	//for vector data.
 	//can do allocate and deallocate.
@@ -616,10 +623,16 @@ private:
 		explicit _vector_Imp(size_type n)
 			: Alloc()
 		{
-			initialize_Imp(n,T());
+			initialize_Imp(n,value_type());
 		}
 
 		_vector_Imp(iterator b,iterator e)
+			: Alloc()
+		{
+			initialize_Copy(const_iterator(b),const_iterator(e));
+		}
+
+		_vector_Imp(const_iterator b,const_iterator e)
 			: Alloc()
 		{
 			initialize_Copy(b,e);
@@ -637,8 +650,15 @@ private:
 		
 		void selfdelete()
 		{
-			Alloc::destory(_begin,_end);
+			destroy(_begin,_end);
 			Alloc::deallocate(_begin,_end - _begin);
+		}
+
+		void destroy(pointer p) { Alloc::destroy(p);}
+
+		void destroy(pointer begin,pointer end)
+		{
+			for (;begin != end;++begin) Alloc::destroy(begin);
 		}
 
 		void initialize_Imp(size_type n,const value_type& value)
@@ -649,7 +669,7 @@ private:
 			_end_of_storage = _end;
 		}
 
-		void initialize_Copy(iterator b,iterator e)
+		void initialize_Copy(const_iterator b,const_iterator e)
 		{
 			size_type n = e - b;
 			_begin = Alloc::allocate(n);
@@ -657,6 +677,7 @@ private:
 			_end = _begin + n;
 			_end_of_storage = _end;
 		}
+
 
 	};
 	_vector_Imp _imp;
