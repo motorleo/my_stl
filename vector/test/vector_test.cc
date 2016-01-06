@@ -1,5 +1,5 @@
 #define BOOST_TEST_MODULE vector
-#include "vector.h"
+#include "../vector.h"
 #include <boost/test/included/unit_test.hpp>
 #include <string>
 #include <stdio.h>
@@ -64,6 +64,8 @@ BOOST_AUTO_TEST_CASE (normal_member)
 	if (!if_throw) BOOST_ERROR("no throw");
 	BOOST_CHECK_EQUAL(*(a.begin()),0);
 	BOOST_CHECK_EQUAL(*(a.end() - 1),9);
+	BOOST_CHECK_EQUAL(*(a.rbegin()),9);
+	BOOST_CHECK_EQUAL(*(a.rend() - 1),0);
 	BOOST_CHECK_EQUAL(a.front(),0);
 	BOOST_CHECK_EQUAL(a.back(),9);
 	vector<int> b;
@@ -129,4 +131,5 @@ BOOST_AUTO_TEST_CASE(modifiers)
 	BOOST_CHECK(b > a);
 	BOOST_CHECK(a <= b);
 	BOOST_CHECK(b >= a);
+	vector<int> c;
 }

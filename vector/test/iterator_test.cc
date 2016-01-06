@@ -1,6 +1,6 @@
 #define BOOST_TEST_MODULE iterator
 #include <boost/test/included/unit_test.hpp>
-#include "vector.h"
+#include "../vector.h"
 #include <string>
 
 using leo::__vec_iterator;

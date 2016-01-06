@@ -49,12 +49,12 @@ public:
 		return temp; 
 	}
 
-	__vec_iterator operator+(difference_type n) 
+	__vec_iterator operator+(difference_type n) const
 	{
 		return __vec_iterator(ptr+n);
 	}
 
-	__vec_iterator operator-(difference_type n)
+	__vec_iterator operator-(difference_type n) const
 	{
 		return __vec_iterator(ptr-n);
 	}
@@ -173,12 +173,12 @@ public:
 		return temp; 
 	}
 
-	__const_vec_iterator operator+(difference_type n) 
+	__const_vec_iterator operator+(difference_type n) const
 	{
 		return __const_vec_iterator(ptr+n);
 	}
 
-	__const_vec_iterator operator-(difference_type n)
+	__const_vec_iterator operator-(difference_type n) const
 	{
 		return __const_vec_iterator(ptr-n);
 	}
@@ -255,16 +255,18 @@ template <typename T,typename Alloc = std::allocator<T> >
 class vector
 {
 public:
-	typedef T                                         value_type;
-	typedef Alloc					                  allocator_type;
-	typedef typename allocator_type::reference        reference;
-	typedef typename allocator_type::const_reference  const_reference;
-	typedef typename allocator_type::pointer          pointer;
-	typedef typename allocator_type::const_pointer    const_pointer;
-	typedef __vec_iterator<value_type>                iterator;
-	typedef __const_vec_iterator<value_type>          const_iterator;
-	typedef size_t                                    size_type;
-	typedef std::ptrdiff_t                            difference_type;
+	typedef T							                    value_type;
+	typedef Alloc											allocator_type;
+	typedef typename allocator_type::reference		        reference;
+	typedef typename allocator_type::const_reference		const_reference;
+	typedef typename allocator_type::pointer				pointer;
+	typedef typename allocator_type::const_pointer			const_pointer;
+	typedef __vec_iterator<value_type>					    iterator;
+	typedef __const_vec_iterator<value_type>				const_iterator;
+	typedef typename std::reverse_iterator<iterator>        reverse_iterator;
+	typedef typename std::reverse_iterator<const_iterator>  const_reverse_iterator;
+	typedef size_t											size_type;
+	typedef typename iterator::difference_type			  	difference_type;
 
 	//Construtor
 	vector() : _imp() {}
@@ -297,6 +299,14 @@ public:
 	iterator end() { return iterator(_imp._end); }
 
 	const_iterator end() const { return const_iterator(_imp._end); }
+
+	reverse_iterator rbegin() { return reverse_iterator(end()); }
+
+	const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+
+	reverse_iterator rend() { return reverse_iterator(begin()); }
+
+	const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 
 	//Capacity
 	size_type size() const { return _imp._end - _imp._begin; }
