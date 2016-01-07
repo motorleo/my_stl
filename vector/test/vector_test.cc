@@ -8,9 +8,9 @@ using leo::vector;
 
 void print(const vector<int>& v)
 {
-	for (int i = 0;i != v.size();++i)
-		printf("%d  ",v[i]);
-	printf("\n");
+	std::copy(v.begin(),v.end(),
+			  std::ostream_iterator<int>(std::cout,"  "));
+	std::cout << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE (constructor)
