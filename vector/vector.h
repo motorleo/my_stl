@@ -2,6 +2,7 @@
 #define _MY_STL_VECTOR_H_
 #include <memory>
 #include <iterator>
+#include <assert.h>
 
 namespace leo
 {
@@ -394,7 +395,7 @@ public:
 		}
 		else
 		{
-			if (n < size())
+			if (n <= size())
 			{
 				std::copy(first,last,begin());
 				iterator new_end = begin() + n;
@@ -423,7 +424,7 @@ public:
 		}
 		else
 		{
-			if (n < size())
+			if (n <= size())
 			{
 				std::fill_n(begin(),n,value);
 				iterator new_end = begin() + n;
@@ -577,6 +578,7 @@ public:
 
 	iterator erase(iterator position)
 	{
+		assert(position < end());
 		std::copy(position + 1,end(),position);
 		--_imp._end;
 		_imp.destroy(_imp._end);
@@ -585,6 +587,7 @@ public:
 
 	iterator erase(iterator first,iterator last)
 	{
+		assert(last <= end());
 		size_type n = last - first;
 		std::copy(last,end(),first);
 		_imp.destroy(_imp._end - n,_imp._end);
